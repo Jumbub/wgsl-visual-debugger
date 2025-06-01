@@ -24,7 +24,8 @@ fn DBG_is_i32(uv: vec2<f32>, number: i32) -> f32 {
 
 fn DBG_is_ascii(uv: vec2<f32>, ascii: u32) -> f32 {
   if (uv.x < 0 || uv.y < 0 || uv.x >= 1 || uv.y >= 1) { return 0f; }
-  let uvScaled: vec2<f32> = uv * vec2<f32>(DBG_FONT_SIZE);
+  let uvScaled: vec2<f32> = uv * vec2<f32>(DBG_FONT_SIZE) * 1.2;
+  if (uvScaled.x > f32(DBG_FONT_SIZE.x)) { return 0; }
   let fontPixel: vec2<u32> = vec2<u32>(uvScaled);
   let fontBitIndex: u32 = ((DBG_FONT_SIZE.x - 1) - fontPixel.x) + fontPixel.y * DBG_FONT_SIZE.x;
   return f32(extractBits(DBG_FONT[ascii], fontBitIndex, 1));
