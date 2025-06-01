@@ -1,0 +1,78 @@
+<html>
+  <body style="background-color: #000">
+    <canvas width="300" height="300"></canvas>
+    <script type="module">
+      const gpu = navigator.gpu;
+      if (!gpu) document.body.textContent = 'WebGPU not supported on this browser';
+
+      const adapter = await gpu.requestAdapter();
+      if (!adapter) document.body.textContent = 'No appropriate GPU adapter found';
+
+      const device = await adapter.requestDevice();
+
+      const format = gpu.getPreferredCanvasFormat();
+
+      const canvas = document.getElementsByTagName('canvas')[0];
+
+      const context = canvas.getContext('webgpu');
+      if (!context) document.body.textContent = 'Unable to get webgpu canvas context';
+
+      context.configure({ device, format });
+
+      const wgsl = String.raw;
+      const pipeline = await device.createRenderPipelineAsync({
+        layout: 'auto',
+        vertex: {
+          module: device.createShaderModule({
+            code: wgsl`
+              struct Output {
+                @builtin(position) position: vec4<f32>,
+                @location(0) uv: vec2<f32>,
+              }
+
+              @vertex
+              fn main(@builtin(vertex_index) i: u32) -> Output {
+                let uv = array(
+                  vec2f(0,  1),
+                  vec2f(1, 1),
+                  vec2f(0, 0),
+                  vec2f(1, 0),
+                );
+                return Output(
+                  vec4f(uv[i] * 2 - 1, 0, 1),
+                  uv[i]
+                );
+              }`,
+          }),
+        },
+        fragment: {
+          targets: [{ format }],
+          module: device.createShaderModule({
+            code: wgsl`
+              ${await (await fetch('debug-string.wgsl')).text()}
+
+              @fragment
+              fn main(
+                @location(0) uv: vec2<f32>
+              ) -> @location(0) vec4<f32> {
+                return vec4<f32>(DBG_debug(uv));
+              }
+            `,
+          }),
+        },
+        primitive: { topology: 'triangle-strip' },
+      });
+
+      const commandEncoder = device.createCommandEncoder();
+
+      const pass = commandEncoder.beginRenderPass({
+        colorAttachments: [{ view: context.getCurrentTexture().createView(), loadOp: 'clear', storeOp: 'store' }],
+      });
+      pass.setPipeline(pipeline);
+      pass.draw(4, 1);
+      pass.end();
+
+      device.queue.submit([commandEncoder.finish()]);
+    </script>
+  </body>
+</html>
