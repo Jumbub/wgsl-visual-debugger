@@ -1,17 +1,25 @@
 fn DBG_debug(uv: vec2<f32>) -> f32 {
-  return DBG_is_u32(uv*10, 4294967295);
+  return DBG_is_i32(uv*16, -2147483647);
 }
 
 fn DBG_is_u32(uv: vec2<f32>, number: u32) -> f32 {
   if (uv.x < 0 || uv.y < 0) { return 0; }
 
   var charUv = vec2<u32>(uv);
-  let charRange = vec2<u32>(DBG_log(number, 10), 1);
+  let charRange = vec2<u32>(DBG_log_u32(number, 10), 1);
 
   if (charUv.y > 0 || charUv.x > charRange.x) { return 0; }
 
-  let digit = (number / DBG_pow(10, (charRange.x - charUv.x) - 1)) % 10;
+  let digit = (number / DBG_pow_u32(10, (charRange.x - charUv.x) - 1)) % 10;
   return DBG_is_ascii(uv - vec2f(f32(charUv.x), 0), DBG_ASCII_DIGITS_START + digit);
+}
+
+fn DBG_is_i32(uv: vec2<f32>, number: i32) -> f32 {
+  let negative = extractBits(number, 31, 1) != 0;
+  if (negative && u32(uv.x) == 0) {
+    return DBG_is_ascii(uv, 45);
+  }
+  return DBG_is_u32(uv - vec2f(select(0f, 1f, negative), 0), u32(abs(number)));
 }
 
 fn DBG_is_ascii(uv: vec2<f32>, ascii: u32) -> f32 {
@@ -22,7 +30,7 @@ fn DBG_is_ascii(uv: vec2<f32>, ascii: u32) -> f32 {
   return f32(extractBits(DBG_FONT[ascii], fontBitIndex, 1));
 }
 
-fn DBG_pow(number: u32, power: u32) -> u32 {
+fn DBG_pow_u32(number: u32, power: u32) -> u32 {
   if (power > 31) { return 0; }
   var result = number;
   for (var i: u32 = 0; i < power; i += 1) {
@@ -31,7 +39,7 @@ fn DBG_pow(number: u32, power: u32) -> u32 {
   return result;
 }
 
-fn DBG_log(number: u32, base: u32) -> u32 {
+fn DBG_log_u32(number: u32, base: u32) -> u32 {
   var result: u32 = 0;
   for (var remaining: u32 = number; remaining > 9; remaining /= base) {
     result += 1;
@@ -89,7 +97,7 @@ const DBG_FONT: array<u32, 256> = array(
   0,
   0,
   0,
-  0,
+  0x7c00,
   0,
   0,
   // digits
