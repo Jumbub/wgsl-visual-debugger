@@ -1,5 +1,6 @@
 fn DBG_debug(uv: vec2<f32>) -> f32 {
-  return DBG_is_i32(uv*16, -2147483647);
+  var x = 0f;
+  return DBG_is_f32(uv*10, -0f/x);
 }
 
 fn DBG_is_u32(uv: vec2<f32>, number: u32) -> f32 {
@@ -11,7 +12,7 @@ fn DBG_is_u32(uv: vec2<f32>, number: u32) -> f32 {
   if (charUv.y > 0 || charUv.x > charRange.x) { return 0; }
 
   let digit = (number / DBG_pow_u32(10, (charRange.x - charUv.x) - 1)) % 10;
-  return DBG_is_ascii(uv - vec2f(f32(charUv.x), 0), DBG_ASCII_DIGITS_START + digit);
+  return DBG_is_ascii(uv - vec2f(f32(charUv.x), 0), DBG_ASCII_NUMBER_START + digit);
 }
 
 fn DBG_is_i32(uv: vec2<f32>, number: i32) -> f32 {
@@ -20,6 +21,30 @@ fn DBG_is_i32(uv: vec2<f32>, number: i32) -> f32 {
     return DBG_is_ascii(uv, 45);
   }
   return DBG_is_u32(uv - vec2f(select(0f, 1f, negative), 0), u32(abs(number)));
+}
+
+fn DBG_is_f32(uv: vec2<f32>, number: f32) -> f32 {
+  let negative = extractBits(bitcast<i32>(number), 31u, 1u) != 0;
+  if (negative && u32(uv.x) == 0) {
+    return DBG_is_ascii(uv, 45);
+  }
+
+  let uvWithSign = uv - vec2<f32>(select(0f, 1f, negative), 0);
+  if (extractBits(bitcast<u32>(number), 23u, 8u) == 255) {
+    if (extractBits(bitcast<u32>(number), 0u, 23u) == 0) {
+      return DBG_is_ascii(uvWithSign, 236);
+    } else {
+      if (uv.x < 1) {
+        return DBG_is_ascii(uvWithSign, 78);
+      } else if (uv.x < 2) {
+        return DBG_is_ascii(uvWithSign - vec2f(1, 0), 65);
+      } else {
+        return DBG_is_ascii(uvWithSign - vec2f(2, 0), 78);
+      }
+    }
+  }
+
+  return 0;
 }
 
 fn DBG_is_ascii(uv: vec2<f32>, ascii: u32) -> f32 {
@@ -49,7 +74,8 @@ fn DBG_log_u32(number: u32, base: u32) -> u32 {
   return result;
 }
 
-const DBG_ASCII_DIGITS_START = 48;
+const DBG_ASCII_NUMBER_START = 48;
+const DBG_ASCII_ALPHABET_START = 48;
 
 const DBG_FONT_SIZE: vec2<u32> = vec2(5, 5);
 const DBG_FONT: array<u32, 256> = array(
@@ -257,7 +283,7 @@ const DBG_FONT: array<u32, 256> = array(
   0,
   0,
   0,
-  0,
+  0x55540,
   0,
   0,
   0,
@@ -278,3 +304,5 @@ const DBG_FONT: array<u32, 256> = array(
   0,
   0,
 );
+
+
