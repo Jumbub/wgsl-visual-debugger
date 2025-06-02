@@ -3,7 +3,11 @@ fn DBG_debug(uv: vec2<f32>) -> f32 {
 }
 
 fn DBG_is_bool(uv: vec2<f32>, value: bool) -> f32 {
-  return DBG_is_i32(uv, select(0, 1, value));
+  if (value) {
+    return DBG_is_ascii5(uv, array<u32, 5>(84, 82, 85, 69, 0));
+  } else {
+    return DBG_is_ascii5(uv, array<u32, 5>(70, 65, 76, 83, 69));
+  }
 }
 
 fn DBG_is_u32(uv: vec2<f32>, number: u32) -> f32 {
@@ -77,6 +81,11 @@ fn DBG_is_f32(uv: vec2<f32>, number: f32) -> f32 {
   }
 
   return 0f;
+}
+
+fn DBG_is_ascii5(uv: vec2<f32>, string: array<u32, 5>) -> f32 {
+  if (uv.x >= 5) { return 0f; }
+  return DBG_is_ascii(uv - vec2(floor(uv.x), 0), string[u32(uv.x)]);
 }
 
 fn DBG_is_ascii(uv: vec2<f32>, ascii: u32) -> f32 {
@@ -170,6 +179,8 @@ fn DBG_log_u32(number: u32, base: u32) -> u32 {
 
 const DBG_ASCII_NUMBER_START = 48;
 const DBG_ASCII_UPPERCASE_ALPHABET_START = 65;
+
+alias DBG_String = array<u32, 1000>;
 
 const DBG_FONT_SIZE: vec2<u32> = vec2(5, 5);
 const DBG_FONT: array<u32, 256> = array(
