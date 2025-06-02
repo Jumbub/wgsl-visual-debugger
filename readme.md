@@ -38,4 +38,6 @@ You are exceeding the string length constant.
 
 Use string templating to assign the string length constant.
 
-> The text region is
+> I am seeing characters that look like this
+
+The font does not support this character. (the 2 bottom rows contain the bit representation of the character)
