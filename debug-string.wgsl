@@ -1,6 +1,9 @@
 fn DBG_debug(uv: vec2<f32>) -> f32 {
-  var x = 0f;
-  return DBG_is_f32(uv*10, -0f/x);
+  return DBG_is_bool(uv*10, true);
+}
+
+fn DBG_is_bool(uv: vec2<f32>, value: bool) -> f32 {
+  return DBG_is_i32(uv, select(0, 1, value));
 }
 
 fn DBG_is_u32(uv: vec2<f32>, number: u32) -> f32 {
