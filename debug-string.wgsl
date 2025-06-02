@@ -1,5 +1,5 @@
 fn DBG_debug(uv: vec2<f32>) -> f32 {
-  return DBG_is_bool(uv*10, true);
+  return DBG_is_f32(uv*30, -123.0000123);
 }
 
 fn DBG_is_bool(uv: vec2<f32>, value: bool) -> f32 {
@@ -64,12 +64,20 @@ fn DBG_is_f32(uv: vec2<f32>, number: f32) -> f32 {
   }
   let uvWithoutIntegral = uvWithoutSign - vec2f(f32(integralLength), 0);
 
-  let decimalLength = select(0, f32(1 + DBG_string_length(parts.decimal)), parts.decimal > 0);
+  let decimalLength = select(
+    0,
+    f32(parts.decimalPlace),
+    parts.decimal > 0
+  );
   if (uvWithoutIntegral.x < decimalLength) {
     if (uvWithoutIntegral.x < 1) {
       return DBG_is_ascii(uvWithoutIntegral, 46);
     }
-    return DBG_is_u32(uvWithoutIntegral - vec2f(1, 0), parts.decimal);
+    let zeros = parts.decimalPlace - DBG_string_length(parts.decimal);
+    if (uvWithoutIntegral.x < f32(zeros)) {
+      return DBG_is_ascii(vec2f(uvWithoutIntegral.x % 1, uvWithoutIntegral.y), DBG_ASCII_NUMBER_START);
+    }
+    return DBG_is_u32(uvWithoutIntegral - vec2f(f32(zeros), 0), parts.decimal);
   }
   let uvWithoutDecimal = uvWithoutIntegral - vec2f(decimalLength, 0);
 
@@ -102,7 +110,8 @@ fn DBG_is_ascii(uv: vec2<f32>, ascii: u32) -> f32 {
 struct DBG_f32_splits {
   integral: u32,
   decimal: u32,
-  exponent: i32
+  decimalPlace: u32,
+  exponent: i32,
 };
 fn DBG_f32_split(inValue: f32) -> DBG_f32_splits {
   var n = DBG_f32_normalize(inValue);
@@ -124,7 +133,12 @@ fn DBG_f32_split(inValue: f32) -> DBG_f32_splits {
       }
     }
   }
-  return DBG_f32_splits(integral, decimal, exponent);
+  var decimalPlace: u32 = 10;
+  while (decimal % 10 == 0 && decimalPlace > 0) {
+    decimal /= 10;
+    decimalPlace -= 1;
+  }
+  return DBG_f32_splits(integral, decimal, decimalPlace, exponent);
 }
 
 struct DBG_f32_normalized {
