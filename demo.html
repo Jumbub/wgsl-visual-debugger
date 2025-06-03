@@ -45,7 +45,7 @@
           targets: [{ format }],
           module: device.createShaderModule({
             code: wgsl`
-              ${await (await fetch('src.wgsl')).text()}
+              ${await (await fetch('visual_debugger.wgsl')).text()}
 
               @fragment
               fn main(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32> {

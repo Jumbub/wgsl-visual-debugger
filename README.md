@@ -1,6 +1,10 @@
 # WGSL Visual Debugger
 
-Visually debug WebGPU scalar, vector or matrice values with pixel samplers.
+Drop-in WGSL functions, rasterizing numerical values into ASCII, for WebGPU fragment shaders.
+
+</br>
+
+Visually debug scalar, vector or matrice values with pixel samplers.
 
 <table>
   <tr>
@@ -27,20 +31,24 @@ Bringing "printf" debugging to a WebGPU near you.
 
 2) Use the required sampler (e.g. `sample_f32`) in your fragment color output.
 
+### Full Example
+
+A full example exists in [demo.html](demo.html).
+
 ### Partial Example
 
 ```wgsl
+${visual_debugger_src}
+
 @fragment
 fn main(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32> {
   return vec4<f32>(sample_f32(uv, 1f));
 }
 ```
 
-### Full Example
+<br/>
 
-A full example exists in [demo.html](demo.html).
-
-### Public API
+## API
 
 The ASCII uses "Code page 437" character encoding.
 

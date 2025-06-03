@@ -90,7 +90,7 @@ fn sample_f32(uv: vec2<f32>, number: f32) -> f32 {
 }
 
 fn sample_ascii5_u32(uv: vec2<f32>, string: array<u32, 5>) -> f32 {
-  if (uv.x >= 5) { return 0f; }
+  if (uv.x < 0 || uv.x >= 5) { return 0f; }
   return sample_ascii_u32(uv - vec2(floor(uv.x), 0), string[u32(uv.x)]);
 }
 
