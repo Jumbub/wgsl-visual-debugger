@@ -1,13 +1,23 @@
-# WGSL Value Debugger
+# WGSL Visual Debugger
 
 Visually debug WebGPU scalar, vector or matrice values with pixel samplers.
 
 <table>
   <tr>
-    <td><img src="https://github.com/user-attachments/assets/a749f538-e128-4fc7-849d-08e90b0ebe49"/></td>
-    <td><pre>let pixel = sample_f32(uv, 1f);</pre></td>
+    <td><img src="https://github.com/user-attachments/assets/7cc6d7ad-d286-4e9a-b8cd-6275a6cd339e"/></td>
+    <td><pre>let pixel = sample_f32(uv, 0.445f);</pre></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/8a28ed2d-1349-4254-b7f5-0d5df30150dd"/></td>
+    <td><pre>let pixel = sample_bool(uv, true);</pre></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/76b0f495-43b4-4a6b-9f5e-da2c7c36c952"/></td>
+    <td><pre>let pixel = sample_i32(uv, -1337);</pre></td>
   </tr>
 </table>
+
+Bringing "printf" debugging to a WebGPU near you.
 
 <br/>
 
@@ -17,9 +27,7 @@ Visually debug WebGPU scalar, vector or matrice values with pixel samplers.
 
 2) Use the required sampler (e.g. `sample_f32`) in your fragment color output.
 
-### Examples
-
-A full example exists in [demo.wgsl](demo.wgsl).
+### Partial Example
 
 ```wgsl
 @fragment
@@ -28,7 +36,13 @@ fn main(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32> {
 }
 ```
 
-### API
+### Full Example
+
+A full example exists in [demo.html](demo.html).
+
+### Public API
+
+The ASCII uses "Code page 437" character encoding.
 
 ```wgsl
 fn sample_bool(uv: vec2<f32>, value: bool) -> f32;
@@ -51,16 +65,9 @@ fn sample_ascii_u32(uv: vec2<f32>, char: u32) -> f32;
 fn sample_ascii5_u32(uv: vec2<f32>, string: array<u32, 5>) -> f32;
 ```
 
-> The ASCII characters use "Code page 437" character encoding
-
 <br/>
 
 ## Why?
-
-- Quicker prototyping in WebGPU.
-- Enables debugging for buffers which aren't CPU mappable.
-
-#### A potential answer to the questions:
 
 > Is there a way to render text in WebGPU without using textures?
 
@@ -71,6 +78,8 @@ fn sample_ascii5_u32(uv: vec2<f32>, string: array<u32, 5>) -> f32;
 > How do I see the values of my storage buffer without using staging buffers?
 
 > How do I do "print" style debugging in WGSL?
+
+- Use the sampler functions provided by this repository
 
 <br/>
 
