@@ -1,10 +1,10 @@
 fn DBG_debug(uv: vec2<f32>) -> f32 {
-  return DBG_is_ascii(uv, 32);
+  return DBG_is_vec4_f32(uv*16 - vec2f(2, 2), vec4<f32>(123.456, 1000000000001, -1200.0021, 0.00000001));
 }
 
 fn DBG_is_bool(uv: vec2<f32>, value: bool) -> f32 {
   if (value) {
-    return DBG_is_ascii5(uv, array<u32, 5>(84, 82, 85, 69, 0));
+    return DBG_is_ascii5(uv, array<u32, 5>(84, 82, 85, 69, 32));
   } else {
     return DBG_is_ascii5(uv, array<u32, 5>(70, 65, 76, 83, 69));
   }
@@ -16,7 +16,7 @@ fn DBG_is_u32(uv: vec2<f32>, number: u32) -> f32 {
   var charUv = vec2<u32>(uv);
   let charRange = vec2<u32>(DBG_string_length(number) - 1, 1);
 
-  if (charUv.y > 0 || charUv.x > charRange.x) { return 0; }
+  if (charUv.x > charRange.x) { return 0; }
 
   let digit = (number / DBG_pow_u32(10, (charRange.x - charUv.x) - 1)) % 10;
   return DBG_is_ascii(uv - vec2f(f32(charUv.x), 0), DBG_ASCII_NUMBER_START + digit);
@@ -31,7 +31,7 @@ fn DBG_is_i32(uv: vec2<f32>, number: i32) -> f32 {
 }
 
 fn DBG_is_f32(uv: vec2<f32>, number: f32) -> f32 {
-  // credit: https://blog.benoitblanchon.fr/lightweight-float-to-string/
+  // https://blog.benoitblanchon.fr/lightweight-float-to-string/
 
   let negative = extractBits(bitcast<i32>(number), 31u, 1u) != 0;
   if (negative && u32(uv.x) == 0) {
@@ -52,7 +52,6 @@ fn DBG_is_f32(uv: vec2<f32>, number: f32) -> f32 {
       }
     }
   }
-
 
   let positive: f32 = abs(number);
 
@@ -83,7 +82,7 @@ fn DBG_is_f32(uv: vec2<f32>, number: f32) -> f32 {
 
   if (parts.exponent != 0) {
     if (uvWithoutDecimal.x < 1) {
-      return DBG_is_ascii(uvWithoutDecimal, DBG_ASCII_UPPERCASE_ALPHABET_START + 4);
+      return DBG_is_ascii(uvWithoutDecimal, 69);
     }
     return DBG_is_i32(uvWithoutDecimal - vec2f(1, 0), parts.exponent);
   }
@@ -97,15 +96,103 @@ fn DBG_is_ascii5(uv: vec2<f32>, string: array<u32, 5>) -> f32 {
 }
 
 fn DBG_is_ascii(uv: vec2<f32>, ascii: u32) -> f32 {
-  if (uv.x < 0 || uv.y < 0 || uv.x >= 1 || uv.y >= 1) { return 0f; }
-  let uvScaled: vec2<f32> = uv * vec2<f32>(DBG_FONT_SIZE) * 1.2;
+  let uvScaled: vec2<f32> = uv * vec2<f32>(DBG_FONT_SIZE) * vec2f(1.2, 1.2);
+  if (uvScaled.x < 0 || uvScaled.y < 0 || uvScaled.x >= 5 || uvScaled.y >= 5) { return 0f; }
   if (uvScaled.x > f32(DBG_FONT_SIZE.x)) { return 0; }
   let fontPixel: vec2<u32> = vec2<u32>(uvScaled);
   let fontBitIndex: u32 = ((DBG_FONT_SIZE.x - 1) - fontPixel.x) + fontPixel.y * DBG_FONT_SIZE.x;
   return f32(extractBits(DBG_FONT[ascii], fontBitIndex, 1));
 }
 
+fn DBG_is_vec4_bool(uv: vec2<f32>, value: vec4<bool>) -> f32 {
+  return DBG_is_vecN_bool(uv, array(value[0], value[1], value[2], value[3]), 4);
+}
+
+fn DBG_is_vec3_bool(uv: vec2<f32>, value: vec3<bool>) -> f32 {
+  return DBG_is_vecN_bool(uv, array(value[0], value[1], value[2], false), 3);
+}
+
+fn DBG_is_vec2_bool(uv: vec2<f32>, value: vec2<bool>) -> f32 {
+  return DBG_is_vecN_bool(uv, array(value[0], value[1], false, false), 2);
+}
+
+fn DBG_is_vec4_u32(uv: vec2<f32>, value: vec4<u32>) -> f32 {
+  return DBG_is_vecN_u32(uv, array(value[0], value[1], value[2], value[3]), 4);
+}
+
+fn DBG_is_vec3_u32(uv: vec2<f32>, value: vec3<u32>) -> f32 {
+  return DBG_is_vecN_u32(uv, array(value[0], value[1], value[2], 0), 3);
+}
+
+fn DBG_is_vec2_u32(uv: vec2<f32>, value: vec2<u32>) -> f32 {
+  return DBG_is_vecN_u32(uv, array(value[0], value[1], 0, 0), 2);
+}
+
+fn DBG_is_vec4_i32(uv: vec2<f32>, value: vec4<i32>) -> f32 {
+  return DBG_is_vecN_i32(uv, array(value[0], value[1], value[2], value[3]), 4);
+}
+
+fn DBG_is_vec3_i32(uv: vec2<f32>, value: vec3<i32>) -> f32 {
+  return DBG_is_vecN_i32(uv, array(value[0], value[1], value[2], 0), 3);
+}
+
+fn DBG_is_vec2_i32(uv: vec2<f32>, value: vec2<i32>) -> f32 {
+  return DBG_is_vecN_i32(uv, array(value[0], value[1], 0, 0), 2);
+}
+
+fn DBG_is_vec4_f32(uv: vec2<f32>, value: vec4<f32>) -> f32 {
+  return DBG_is_vecN_f32(uv, array(value[0], value[1], value[2], value[3]), 4);
+}
+
+fn DBG_is_vec3_f32(uv: vec2<f32>, value: vec3<f32>) -> f32 {
+  return DBG_is_vecN_f32(uv, array(value[0], value[1], value[2], 0), 3);
+}
+
+fn DBG_is_vec2_f32(uv: vec2<f32>, value: vec2<f32>) -> f32 {
+  return DBG_is_vecN_f32(uv, array(value[0], value[1], 0, 0), 2);
+}
+
 // beginning of internals
+
+fn DBG_is_vecN_bool(uv: vec2<f32>, value: array<bool, 4>, n: u32) -> f32 {
+  if (uv.y >= f32(n)) { return 0f; }
+  let index = u32(uv.y);
+  if (uv.x < 2) {
+    return DBG_is_ascii(uv - vec2f(0, f32(index)), DBG_ASCII_NUMBER_START + ((n - 1) - index));
+  } else {
+    return DBG_is_bool(uv - vec2f(2, f32(index)), value[(n - 1) - index]);
+  }
+}
+
+fn DBG_is_vecN_u32(uv: vec2<f32>, value: array<u32, 4>, n: u32) -> f32 {
+  if (uv.y >= f32(n)) { return 0f; }
+  let index = u32(uv.y);
+  if (uv.x < 2) {
+    return DBG_is_ascii(uv - vec2f(0, f32(index)), DBG_ASCII_NUMBER_START + ((n - 1) - index));
+  } else {
+    return DBG_is_u32(uv - vec2f(2, f32(index)), value[(n - 1) - index]);
+  }
+}
+
+fn DBG_is_vecN_i32(uv: vec2<f32>, value: array<i32, 4>, n: u32) -> f32 {
+  if (uv.y >= f32(n)) { return 0f; }
+  let index = u32(uv.y);
+  if (uv.x < 2) {
+    return DBG_is_ascii(uv - vec2f(0, f32(index)), DBG_ASCII_NUMBER_START + ((n - 1) - index));
+  } else {
+    return DBG_is_i32(uv - vec2f(2, f32(index)), value[(n - 1) - index]);
+  }
+}
+
+fn DBG_is_vecN_f32(uv: vec2<f32>, value: array<f32, 4>, n: u32) -> f32 {
+  if (uv.y >= f32(n)) { return 0f; }
+  let index = u32(uv.y);
+  if (uv.x < 2) {
+    return DBG_is_ascii(uv - vec2f(0, f32(index)), DBG_ASCII_NUMBER_START + ((n - 1) - index));
+  } else {
+    return DBG_is_f32(uv - vec2f(2, f32(index)), value[(n - 1) - index]);
+  }
+}
 
 struct DBG_f32_splits {
   integral: u32,
@@ -191,268 +278,72 @@ fn DBG_log_u32(number: u32, base: u32) -> u32 {
   return result;
 }
 
+const DBG_ASCII_LETTER_START = 65;
 const DBG_ASCII_NUMBER_START = 48;
-const DBG_ASCII_UPPERCASE_ALPHABET_START = 65;
 
-alias DBG_String = array<u32, 1000>;
-
+// ASCII (Code page 437)
 const DBG_FONT_SIZE: vec2<u32> = vec2(5, 5);
-
 const DBG_FONT: array<u32, 256> = array(
-  0x15f8000 + 0,
-  0x15f8000 + 1,
-  0x15f8000 + 2,
-  0x15f8000 + 3,
-  0x15f8000 + 4,
-  0x15f8000 + 5,
-  0x15f8000 + 6,
-  0x15f8000 + 7,
-  0x15f8000 + 8,
-  0x15f8000 + 9,
-  0x15f8000 + 10,
-  0x15f8000 + 11,
-  0x15f8000 + 12,
-  0x15f8000 + 13,
-  0x15f8000 + 14,
-  0x15f8000 + 15,
-  0x15f8000 + 16,
-  0x15f8000 + 17,
-  0x15f8000 + 18,
-  0x15f8000 + 19,
-  0x15f8000 + 20,
-  0x15f8000 + 21,
-  0x15f8000 + 22,
-  0x15f8000 + 23,
-  0x15f8000 + 24,
-  0x15f8000 + 25,
-  0x15f8000 + 26,
-  0x15f8000 + 27,
-  0x15f8000 + 28,
-  0x15f8000 + 29,
-  0x15f8000 + 30,
-  0x15f8000 + 31,
-  0x15f8000 + 32,
-  0x15f8000 + 33,
-  0x15f8000 + 34,
-  0x15f8000 + 35,
-  0x15f8000 + 36,
-  0x15f8000 + 37,
-  0x15f8000 + 38,
-  0x15f8000 + 39,
-  0x15f8000 + 40,
-  0x15f8000 + 41,
-  0x15f8000 + 42,
-  0x15f8000 + 43,
-  0x15f8000 + 44,
-  0x7c00, // -
-  0x4, // .
-  0x15f8000 + 47,
-  0xecd66e, // digits
-  0x46108e,
-  0xe8899f,
-  0xe88a2e,
-  0x4653e4,
-  0x1f8783e,
-  0xe87a2e,
-  0x1f08888,
-  0xe8ba2e,
-  0xe8bc2e,
-  0x15f8000 + 58,
-  0x15f8000 + 59,
-  0x222082, // <
-  0x15f8000 + 61,
-  0x820888, // >
-  0x15f8000 + 63,
-  0x15f8000 + 64,
-  0xE8FE31, // uppercase letters
-  0x1E8FA3E,
-  0xE8C22E,
-  0x1E8C63E,
-  0x1F87A1F,
-  0x1F87A10,
-  0xE85E2E,
-  0x118FE31,
-  0xE2108E,
-  0xF10A4C,
-  0x12A6292,
-  0x108421E,
-  0x11DD631,
-  0x11CD671,
-  0xE8C62E,
-  0x1E8FA10,
-  0xE8C66F,
-  0x1E8FA93,
-  0xF8383E,
-  0x1F21084,
-  0x118C62E,
-  0x118A944,
-  0x118C6AA,
-  0x1151151,
-  0x1151084,
-  0x1F1111F,
-  0x15f8000 + 91,
-  0x15f8000 + 92,
-  0x15f8000 + 93,
-  0x15f8000 + 94,
-  0x15f8000 + 95,
-  0x15f8000 + 96,
-  0x15f8000 + 97,
-  0x15f8000 + 98,
-  0x15f8000 + 99,
-  0x15f8000 + 100,
-  0x15f8000 + 101,
-  0x15f8000 + 102,
-  0x15f8000 + 103,
-  0x15f8000 + 104,
-  0x15f8000 + 105,
-  0x15f8000 + 106,
-  0x15f8000 + 107,
-  0x15f8000 + 108,
-  0x15f8000 + 109,
-  0x15f8000 + 110,
-  0x15f8000 + 111,
-  0x15f8000 + 112,
-  0x15f8000 + 113,
-  0x15f8000 + 114,
-  0x15f8000 + 115,
-  0x15f8000 + 116,
-  0x15f8000 + 117,
-  0x15f8000 + 118,
-  0x15f8000 + 119,
-  0x15f8000 + 120,
-  0x15f8000 + 121,
-  0x15f8000 + 122,
-  0x15f8000 + 123,
-  0x15f8000 + 124,
-  0x15f8000 + 125,
-  0x15f8000 + 126,
-  0x15f8000 + 127,
-  0x15f8000 + 128,
-  0x15f8000 + 129,
-  0x15f8000 + 130,
-  0x15f8000 + 131,
-  0x15f8000 + 132,
-  0x15f8000 + 133,
-  0x15f8000 + 134,
-  0x15f8000 + 135,
-  0x15f8000 + 136,
-  0x15f8000 + 137,
-  0x15f8000 + 138,
-  0x15f8000 + 139,
-  0x15f8000 + 140,
-  0x15f8000 + 141,
-  0x15f8000 + 142,
-  0x15f8000 + 143,
-  0x15f8000 + 144,
-  0x15f8000 + 145,
-  0x15f8000 + 146,
-  0x15f8000 + 147,
-  0x15f8000 + 148,
-  0x15f8000 + 149,
-  0x15f8000 + 150,
-  0x15f8000 + 151,
-  0x15f8000 + 152,
-  0x15f8000 + 153,
-  0x15f8000 + 154,
-  0x15f8000 + 155,
-  0x15f8000 + 156,
-  0x15f8000 + 157,
-  0x15f8000 + 158,
-  0x15f8000 + 159,
-  0x15f8000 + 160,
-  0x15f8000 + 161,
-  0x15f8000 + 162,
-  0x15f8000 + 163,
-  0x15f8000 + 164,
-  0x15f8000 + 165,
-  0x15f8000 + 166,
-  0x15f8000 + 167,
-  0x15f8000 + 168,
-  0x15f8000 + 169,
-  0x15f8000 + 170,
-  0x15f8000 + 171,
-  0x15f8000 + 172,
-  0x15f8000 + 173,
-  0x15f8000 + 174,
-  0x15f8000 + 175,
-  0x15f8000 + 176,
-  0x15f8000 + 177,
-  0x15f8000 + 178,
-  0x15f8000 + 179,
-  0x15f8000 + 180,
-  0x15f8000 + 181,
-  0x15f8000 + 182,
-  0x15f8000 + 183,
-  0x15f8000 + 184,
-  0x15f8000 + 185,
-  0x15f8000 + 186,
-  0x15f8000 + 187,
-  0x15f8000 + 188,
-  0x15f8000 + 189,
-  0x15f8000 + 190,
-  0x15f8000 + 191,
-  0x15f8000 + 192,
-  0x15f8000 + 193,
-  0x15f8000 + 194,
-  0x15f8000 + 195,
-  0x15f8000 + 196,
-  0x15f8000 + 197,
-  0x15f8000 + 198,
-  0x15f8000 + 199,
-  0x15f8000 + 200,
-  0x15f8000 + 201,
-  0x15f8000 + 202,
-  0x15f8000 + 203,
-  0x15f8000 + 204,
-  0x15f8000 + 205,
-  0x15f8000 + 206,
-  0x15f8000 + 207,
-  0x15f8000 + 208,
-  0x15f8000 + 209,
-  0x15f8000 + 210,
-  0x15f8000 + 211,
-  0x15f8000 + 212,
-  0x15f8000 + 213,
-  0x15f8000 + 214,
-  0x15f8000 + 215,
-  0x15f8000 + 216,
-  0x15f8000 + 217,
-  0x15f8000 + 218,
-  0x15f8000 + 219,
-  0x15f8000 + 220,
-  0x15f8000 + 221,
-  0x15f8000 + 222,
-  0x15f8000 + 223,
-  0x15f8000 + 224,
-  0x15f8000 + 225,
-  0x15f8000 + 226,
-  0x15f8000 + 227,
-  0x15f8000 + 228,
-  0x15f8000 + 229,
-  0x15f8000 + 230,
-  0x15f8000 + 231,
-  0x15f8000 + 232,
-  0x15f8000 + 233,
-  0x15f8000 + 234,
-  0x15f8000 + 235,
-  0x55540, // ∞
-  0x15f8000 + 237,
-  0x15f8000 + 238,
-  0x15f8000 + 239,
-  0x15f8000 + 240,
-  0x15f8000 + 241,
-  0x15f8000 + 242,
-  0x15f8000 + 243,
-  0x15f8000 + 244,
-  0x15f8000 + 245,
-  0x15f8000 + 246,
-  0x15f8000 + 247,
-  0x15f8000 + 248,
-  0x15f8000 + 249,
-  0x15f8000 + 250,
-  0x15f8000 + 251,
-  0x15f8000 + 252,
-  0x15f8000 + 253,
-  0x15f8000 + 254,
-  0x15f8000 + 255,
+  /* ████ */ 0x15f8000 + 0, 0x15f8000 + 1, 0x15f8000 + 2, 0x15f8000 + 3, 0x15f8000 + 4,
+  /* ████ */ 0x15f8000 + 5, 0x15f8000 + 6, 0x15f8000 + 7, 0x15f8000 + 8, 0x15f8000 + 9,
+  /* ████ */ 0x15f8000 + 10, 0x15f8000 + 11, 0x15f8000 + 12, 0x15f8000 + 13, 0x15f8000 + 14,
+  /* ████ */ 0x15f8000 + 15, 0x15f8000 + 16, 0x15f8000 + 17, 0x15f8000 + 18, 0x15f8000 + 19,
+  /* ████ */ 0x15f8000 + 20, 0x15f8000 + 21, 0x15f8000 + 22, 0x15f8000 + 23, 0x15f8000 + 24,
+  /* ████ */ 0x15f8000 + 25, 0x15f8000 + 26, 0x15f8000 + 27, 0x15f8000 + 28, 0x15f8000 + 29,
+  /* ██ █ */ 0x15f8000 + 30, 0x15f8000 + 31, 0x0, 0x15f8000 + 33, 0x15f8000 + 34,
+  /* ████ */ 0x15f8000 + 35, 0x15f8000 + 36, 0x15f8000 + 37, 0x15f8000 + 38, 0x15f8000 + 39,
+  /* ████ */ 0x15f8000 + 40, 0x15f8000 + 41, 0x15f8000 + 42, 0x15f8000 + 43, 0x15f8000 + 44,
+  /* -.█0 */ 0x7c00, 0x4, 0x15f8000 + 47, 0xecd66e,
+  /* 1234 */ 0x46108e, 0xe8899f, 0xe88a2e, 0x4653e4,
+  /* 5678 */ 0x1f8783e, 0xe87a2e, 0x1f08888, 0xe8ba2e,
+  /* 9███ */ 0xe8bc2e, 0x15f8000 + 58, 0x15f8000 + 59,
+  /* <█>█ */ 0x222082, 0x15f8000 + 61, 0x820888, 0x15f8000 + 63,
+  /* █ABC */ 0x15f8000 + 64, 0xE8FE31, 0x1E8FA3E, 0xE8C22E,
+  /* DEFG */ 0x1E8C63E, 0x1F87A1F, 0x1F87A10, 0xE85E2E,
+  /* HIJK */ 0x118FE31, 0xE2108E, 0xF10A4C, 0x12A6292,
+  /* LMNO */ 0x108421E, 0x11DD631, 0x11CD671, 0xE8C62E,
+  /* PQRS */ 0x1E8FA10, 0xE8C66F, 0x1E8FA93, 0xF8383E,
+  /* TUVW */ 0x1F21084, 0x118C62E, 0x118A944, 0x118C6AA,
+  /* XYZ█ */ 0x1151151, 0x1151084, 0x1F1111F, 0x15f8000 + 91,
+  /* ████ */ 0x15f8000 + 92, 0x15f8000 + 93, 0x15f8000 + 94, 0x15f8000 + 95,
+  /* ████ */ 0x15f8000 + 96, 0x15f8000 + 97, 0x15f8000 + 98, 0x15f8000 + 99,
+  /* ████ */ 0x15f8000 + 100, 0x15f8000 + 101, 0x15f8000 + 102, 0x15f8000 + 103,
+  /* ████ */ 0x15f8000 + 104, 0x15f8000 + 105, 0x15f8000 + 106, 0x15f8000 + 107,
+  /* ████ */ 0x15f8000 + 108, 0x15f8000 + 109, 0x15f8000 + 110, 0x15f8000 + 111,
+  /* ████ */ 0x15f8000 + 112, 0x15f8000 + 113, 0x15f8000 + 114, 0x15f8000 + 115,
+  /* ████ */ 0x15f8000 + 116, 0x15f8000 + 117, 0x15f8000 + 118, 0x15f8000 + 119,
+  /* ████ */ 0x15f8000 + 120, 0x15f8000 + 121, 0x15f8000 + 122, 0x15f8000 + 123,
+  /* ████ */ 0x15f8000 + 124, 0x15f8000 + 125, 0x15f8000 + 126, 0x15f8000 + 127,
+  /* ████ */ 0x15f8000 + 128, 0x15f8000 + 129, 0x15f8000 + 130, 0x15f8000 + 131,
+  /* ████ */ 0x15f8000 + 132, 0x15f8000 + 133, 0x15f8000 + 134, 0x15f8000 + 135,
+  /* ████ */ 0x15f8000 + 136, 0x15f8000 + 137, 0x15f8000 + 138, 0x15f8000 + 139,
+  /* ████ */ 0x15f8000 + 140, 0x15f8000 + 141, 0x15f8000 + 142, 0x15f8000 + 143,
+  /* ████ */ 0x15f8000 + 144, 0x15f8000 + 145, 0x15f8000 + 146, 0x15f8000 + 147,
+  /* ████ */ 0x15f8000 + 148, 0x15f8000 + 149, 0x15f8000 + 150, 0x15f8000 + 151,
+  /* ████ */ 0x15f8000 + 152, 0x15f8000 + 153, 0x15f8000 + 154, 0x15f8000 + 155,
+  /* ████ */ 0x15f8000 + 156, 0x15f8000 + 157, 0x15f8000 + 158, 0x15f8000 + 159,
+  /* ████ */ 0x15f8000 + 160, 0x15f8000 + 161, 0x15f8000 + 162, 0x15f8000 + 163,
+  /* ████ */ 0x15f8000 + 164, 0x15f8000 + 165, 0x15f8000 + 166, 0x15f8000 + 167,
+  /* ████ */ 0x15f8000 + 168, 0x15f8000 + 169, 0x15f8000 + 170, 0x15f8000 + 171,
+  /* ████ */ 0x15f8000 + 172, 0x15f8000 + 173, 0x15f8000 + 174, 0x15f8000 + 175,
+  /* ████ */ 0x15f8000 + 176, 0x15f8000 + 177, 0x15f8000 + 178, 0x15f8000 + 179,
+  /* ████ */ 0x15f8000 + 180, 0x15f8000 + 181, 0x15f8000 + 182, 0x15f8000 + 183,
+  /* ████ */ 0x15f8000 + 184, 0x15f8000 + 185, 0x15f8000 + 186, 0x15f8000 + 187,
+  /* ████ */ 0x15f8000 + 188, 0x15f8000 + 189, 0x15f8000 + 190, 0x15f8000 + 191,
+  /* ████ */ 0x15f8000 + 192, 0x15f8000 + 193, 0x15f8000 + 194, 0x15f8000 + 195,
+  /* ████ */ 0x15f8000 + 196, 0x15f8000 + 197, 0x15f8000 + 198, 0x15f8000 + 199,
+  /* ████ */ 0x15f8000 + 200, 0x15f8000 + 201, 0x15f8000 + 202, 0x15f8000 + 203,
+  /* ████ */ 0x15f8000 + 204, 0x15f8000 + 205, 0x15f8000 + 206, 0x15f8000 + 207,
+  /* ████ */ 0x15f8000 + 208, 0x15f8000 + 209, 0x15f8000 + 210, 0x15f8000 + 211,
+  /* ████ */ 0x15f8000 + 212, 0x15f8000 + 213, 0x15f8000 + 214, 0x15f8000 + 215,
+  /* ████ */ 0x15f8000 + 216, 0x15f8000 + 217, 0x15f8000 + 218, 0x15f8000 + 219,
+  /* ████ */ 0x15f8000 + 220, 0x15f8000 + 221, 0x15f8000 + 222, 0x15f8000 + 223,
+  /* ████ */ 0x15f8000 + 224, 0x15f8000 + 225, 0x15f8000 + 226, 0x15f8000 + 227,
+  /* ████ */ 0x15f8000 + 228, 0x15f8000 + 229, 0x15f8000 + 230, 0x15f8000 + 231,
+  /* ████ */ 0x15f8000 + 232, 0x15f8000 + 233, 0x15f8000 + 234, 0x15f8000 + 235,
+  /* ∞███ */ 0x55540, 0x15f8000 + 237, 0x15f8000 + 238, 0x15f8000 + 239,
+  /* ████ */ 0x15f8000 + 240, 0x15f8000 + 241, 0x15f8000 + 242, 0x15f8000 + 243,
+  /* ████ */ 0x15f8000 + 244, 0x15f8000 + 245, 0x15f8000 + 246, 0x15f8000 + 247,
+  /* ████ */ 0x15f8000 + 248, 0x15f8000 + 249, 0x15f8000 + 250, 0x15f8000 + 251,
+  /* ████ */ 0x15f8000 + 252, 0x15f8000 + 253, 0x15f8000 + 254, 0x15f8000 + 255,
 );
