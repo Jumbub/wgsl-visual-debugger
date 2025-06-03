@@ -1,4 +1,4 @@
-# Debug String WGSL
+# WGSL (Debug) String Sampler
 
 Extremely simple text (ASCII string) rendering:
 
@@ -12,7 +12,7 @@ fn main(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32> {
 
 ## Installation
 
-Copy the contents of `wgsl-debug-ascii.wgsl` to the top of your fragment shader code.
+Copy the contents of `wgsl-debug-ascii.wgsl` into your shader.
 
 ## Usage
 
@@ -28,16 +28,34 @@ Render an `f32` by using the return type of `debug_is_f32` as the fragment shade
 
 > How do I see the values of my storage buffer without using staging buffers?
 
+Use the utility functions provided by this repository.
+
 ## Issues
 
-> My text is being cut off at the end
+> I don't see anything
 
-You are exceeding the string length constant.
+The UV range needs to encompass the character locations.
 
-> I need dynamic string lengths per shader
+(characters start at `<0.0, 0.0>`; have a size of `<1.0, 1.0>`; and render in the direction `<+inf, +inf>`)
 
-Use string templating to assign the string length constant.
+> I only see the first digit/letter
+
+The most basic UV range - `<0.0, 0.0>` to `<1.0, 1.0>` - will render the first character to fit the entire texture.
+
+To render more characters, apply a uniform scaling factor to the UV.
+
+(a UV range of `<0.0, 0.0>` to `<3.0, 3.0>` will render the first three characters)
+
+> I want to move the text
+
+To render the characters at an offset, subtract an offset from the UV.
+
+(subtract from the UV _before_ applying the above scaling factor)
+
+(a UV range of -3.0 to 3.0 will render the first three characters offset from the UV by three characters)
 
 > I am seeing characters that look like this
 
-The font does not support this character. (the 2 bottom rows contain the bit representation of the character)
+The font does not support this character.
+
+(the 2 bottom rows of the character contain the bit representation of the character)
