@@ -1,5 +1,5 @@
 <html>
-  <body>
+  <body style="background: #000">
     <canvas width="300" height="300"></canvas>
     <script type="module">
       const gpu = navigator.gpu;
@@ -49,8 +49,7 @@
 
               @fragment
               fn main(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32> {
-                let unknownGpuValue: f32 = sin(cos(0.575)+0.13);
-                return vec4<f32>(sample_f32(uv * 15, unknownGpuValue));
+                return vec4<f32>(sample_f32(uv, 1f));
               }
             `,
           }),
@@ -68,22 +67,5 @@
 
       device.queue.submit([commandEncoder.finish()]);
     </script>
-    <style>
-      body {
-        background: #000;
-        color: #fff;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: baseline;
-      }
-      canvas {
-        outline: 1px solid #555;
-      }
-      pre {
-        margin: 0px;
-        text-align: right;
-        flex-basis: 50%;
-      }
-    </style>
   </body>
 </html>
