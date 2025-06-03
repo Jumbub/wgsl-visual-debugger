@@ -3,7 +3,7 @@
 Visualize hidden GPU scalar, vector or matrice values with a pixel sampler function.
 
 ```wgsl
-let pixel = sample_f32(uv, 1.0f);
+let pixel = sample_f32(uv, 1f);
 ```
 
 ## Usage
