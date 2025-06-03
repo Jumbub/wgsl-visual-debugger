@@ -1,12 +1,17 @@
-# WGSL Hidden Value Debugger
+# WGSL Value Debugger
 
-Visualize hidden GPU scalar, vector or matrice values with a pixel sampler function.
+Visually debug WebGPU scalar, vector or matrice values with pixel samplers.
 
-```wgsl
-let pixel = sample_f32(uv, 1f);
-```
+<table>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/a749f538-e128-4fc7-849d-08e90b0ebe49"/></td>
+    <td><pre>let pixel = sample_f32(uv, 1f);</pre></td>
+  </tr>
+</table>
 
-## Usage
+<br/>
+
+## How?
 
 1) Make the contents of `source.wgsl` available to your shader.
 
@@ -14,7 +19,7 @@ let pixel = sample_f32(uv, 1f);
 
 ### Examples
 
-A full example exists in (demo.wgsl)[demo.wgsl].
+A full example exists in [demo.wgsl](demo.wgsl).
 
 ```wgsl
 @fragment
@@ -64,6 +69,8 @@ fn sample_ascii5_u32(uv: vec2<f32>, string: array<u32, 5>) -> f32;
 > How do I see the values of my storage buffer while the buffer is not CPU mappable?
 
 > How do I see the values of my storage buffer without using staging buffers?
+
+> How do I do "print" style debugging in WGSL?
 
 <br/>
 
