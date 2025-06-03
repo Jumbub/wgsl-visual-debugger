@@ -21,6 +21,7 @@
 
       const wgsl = String.raw;
       const pipeline = await device.createRenderPipelineAsync({
+        primitive: { topology: 'triangle-strip' },
         layout: 'auto',
         vertex: {
           module: device.createShaderModule({
@@ -32,12 +33,7 @@
 
               @vertex
               fn main(@builtin(vertex_index) i: u32) -> Output {
-                let uv = array(
-                  vec2f(0,  1),
-                  vec2f(1, 1),
-                  vec2f(0, 0),
-                  vec2f(1, 0),
-                );
+                let uv = array(vec2f(0,  1), vec2f(1, 1), vec2f(0, 0), vec2f(1, 0));
                 return Output(
                   vec4f(uv[i] * 2 - 1, 0, 1),
                   uv[i]
@@ -49,18 +45,16 @@
           targets: [{ format }],
           module: device.createShaderModule({
             code: wgsl`
-              ${await (await fetch('debug-string.wgsl')).text()}
+              ${await (await fetch('src.wgsl')).text()}
 
               @fragment
-              fn main(
-                @location(0) uv: vec2<f32>
-              ) -> @location(0) vec4<f32> {
-                return vec4<f32>(DBG_debug(uv));
+              fn main(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32> {
+                let unknownGpuValue: f32 = sin(cos(0.575)+0.13);
+                return vec4<f32>(sample_f32(uv * 15, unknownGpuValue));
               }
             `,
           }),
         },
-        primitive: { topology: 'triangle-strip' },
       });
 
       const commandEncoder = device.createCommandEncoder();

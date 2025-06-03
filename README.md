@@ -1,22 +1,28 @@
-# WGSL (Debug) String Sampler
+# WGSL Hidden Value Debugger
 
-Extremely simple text (ASCII string) rendering:
+Visualize hidden GPU scalar, vector or matrice values with a pixel sampler function.
+
+```wgsl
+let pixel = sample_f32(uv, 1.0f);
+```
+
+## Usage
+
+1) Make the contents of `source.wgsl` available to your shader (e.g. by copy pasta)
+
+2) Use one of the available samplers to set the fragment shader output (e.g. `sample_f32`)
+
+### Examples
+
+> A full example exists in `demo.wgsl`.
 
 ```wgsl
 @fragment
 fn main(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32> {
   let unknownGpuValue: f32 = sin(cos(0.575)+0.13);
-  return vec4<f32>(debug_is_f32(uv, unknownGpuValue), 0, 0, 1);
+  return vec4<f32>(sample_f32(uv * 15, unknownGpuValue));
 }
 ```
-
-## Installation
-
-Copy the contents of `wgsl-debug-ascii.wgsl` into your shader.
-
-## Usage
-
-Render an `f32` by using the return type of `debug_is_f32` as the fragment shader color output.
 
 ## Use Cases
 
@@ -30,7 +36,7 @@ Render an `f32` by using the return type of `debug_is_f32` as the fragment shade
 
 Use the utility functions provided by this repository.
 
-## Issues
+## Diagnostics
 
 > I don't see anything
 
@@ -56,6 +62,16 @@ To render the characters at an offset, subtract an offset from the UV.
 
 > I am seeing characters that look like this
 
-The font does not support this character.
+The default font does not support this character.
 
 (the 2 bottom rows of the character contain the bit representation of the character)
+
+> The text is stretched
+
+The aspect ratio of the target texture must match the UV range.
+
+(for a `720x480` texture size you could have a UV range `0x0` to `36x24`)
+
+> The text looks weird when rendered small
+
+The texture must be a multiple of 6 for pixel perfect sampling.

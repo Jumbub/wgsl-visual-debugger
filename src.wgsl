@@ -1,65 +1,61 @@
-fn DBG_debug(uv: vec2<f32>) -> f32 {
-  return DBG_is_vec4_f32(uv*16 - vec2f(2, 2), vec4<f32>(123.456, 1000000000001, -1200.0021, 0.00000001));
-}
-
-fn DBG_is_bool(uv: vec2<f32>, value: bool) -> f32 {
+fn sample_bool(uv: vec2<f32>, value: bool) -> f32 {
   if (value) {
-    return DBG_is_ascii5(uv, array<u32, 5>(84, 82, 85, 69, 32));
+    return sample_array5_char(uv, array<u32, 5>(84, 82, 85, 69, 32));
   } else {
-    return DBG_is_ascii5(uv, array<u32, 5>(70, 65, 76, 83, 69));
+    return sample_array5_char(uv, array<u32, 5>(70, 65, 76, 83, 69));
   }
 }
 
-fn DBG_is_u32(uv: vec2<f32>, number: u32) -> f32 {
+fn sample_u32(uv: vec2<f32>, number: u32) -> f32 {
   if (uv.x < 0 || uv.y < 0) { return 0; }
 
   var charUv = vec2<u32>(uv);
-  let charRange = vec2<u32>(DBG_string_length(number) - 1, 1);
+  let charRange = vec2<u32>(sample__digit_count(number) - 1, 1);
 
   if (charUv.x > charRange.x) { return 0; }
 
-  let digit = (number / DBG_pow_u32(10, (charRange.x - charUv.x) - 1)) % 10;
-  return DBG_is_ascii(uv - vec2f(f32(charUv.x), 0), DBG_ASCII_NUMBER_START + digit);
+  let digit = (number / sample__pow_u32(10, (charRange.x - charUv.x) - 1)) % 10;
+  return sample_char(uv - vec2f(f32(charUv.x), 0), sample__ASCII_NUMBER_START + digit);
 }
 
-fn DBG_is_i32(uv: vec2<f32>, number: i32) -> f32 {
-  let negative = extractBits(number, 31, 1) != 0;
-  if (negative && u32(uv.x) == 0) {
-    return DBG_is_ascii(uv, 45);
+fn sample_i32(uv: vec2<f32>, number: i32) -> f32 {
+  if (number < 0 && u32(uv.x) == 0) {
+    return sample_char(uv, 45);
+  } else {
+    return sample_u32(uv - vec2f(f32(number < 0), 0), u32(abs(number)));
   }
-  return DBG_is_u32(uv - vec2f(select(0f, 1f, negative), 0), u32(abs(number)));
 }
 
-fn DBG_is_f32(uv: vec2<f32>, number: f32) -> f32 {
+fn sample_f32(uv: vec2<f32>, number: f32) -> f32 {
   // https://blog.benoitblanchon.fr/lightweight-float-to-string/
 
   let negative = extractBits(bitcast<i32>(number), 31u, 1u) != 0;
   if (negative && u32(uv.x) == 0) {
-    return DBG_is_ascii(uv, 45);
+    return sample_char(uv, 45);
   }
 
   let uvWithoutSign = uv - vec2<f32>(select(0f, 1f, negative), 0);
   if (extractBits(bitcast<u32>(number), 23u, 8u) == 255) {
     if (extractBits(bitcast<u32>(number), 0u, 23u) == 0) {
-      return DBG_is_ascii(uvWithoutSign, 236);
+      return sample_array5_char(uvWithoutSign, array<u32, 5>(73, 78, 70, 32, 32));
     } else {
       if (uvWithoutSign.x < 1) {
-        return DBG_is_ascii(uvWithoutSign, 78);
+        return sample_char(uvWithoutSign, 78);
       } else if (uvWithoutSign.x < 2) {
-        return DBG_is_ascii(uvWithoutSign - vec2f(1, 0), 65);
+        return sample_char(uvWithoutSign - vec2f(1, 0), 65);
       } else {
-        return DBG_is_ascii(uvWithoutSign - vec2f(2, 0), 78);
+        return sample_char(uvWithoutSign - vec2f(2, 0), 78);
       }
     }
   }
 
   let positive: f32 = abs(number);
 
-  let parts = DBG_f32_split(positive);
+  let parts = sample__f32_split(positive);
 
-  let integralLength = DBG_string_length(parts.integral);
+  let integralLength = sample__digit_count(parts.integral);
   if (uvWithoutSign.x < f32(integralLength)) {
-    return DBG_is_u32(uvWithoutSign, parts.integral);
+    return sample_u32(uvWithoutSign, parts.integral);
   }
   let uvWithoutIntegral = uvWithoutSign - vec2f(f32(integralLength), 0);
 
@@ -70,138 +66,141 @@ fn DBG_is_f32(uv: vec2<f32>, number: f32) -> f32 {
   );
   if (uvWithoutIntegral.x < decimalLength) {
     if (uvWithoutIntegral.x < 1) {
-      return DBG_is_ascii(uvWithoutIntegral, 46);
+      return sample_char(uvWithoutIntegral, 46);
     }
-    let zeros = parts.decimalPlace - DBG_string_length(parts.decimal);
+    let zeros = parts.decimalPlace - sample__digit_count(parts.decimal);
     if (uvWithoutIntegral.x < f32(zeros)) {
-      return DBG_is_ascii(vec2f(uvWithoutIntegral.x % 1, uvWithoutIntegral.y), DBG_ASCII_NUMBER_START);
+      return sample_char(vec2f(uvWithoutIntegral.x % 1, uvWithoutIntegral.y), sample__ASCII_NUMBER_START);
     }
-    return DBG_is_u32(uvWithoutIntegral - vec2f(f32(zeros), 0), parts.decimal);
+    return sample_u32(uvWithoutIntegral - vec2f(f32(zeros), 0), parts.decimal);
   }
   let uvWithoutDecimal = uvWithoutIntegral - vec2f(decimalLength, 0);
 
   if (parts.exponent != 0) {
     if (uvWithoutDecimal.x < 1) {
-      return DBG_is_ascii(uvWithoutDecimal, 69);
+      return sample_char(uvWithoutDecimal, 69);
+    } else if (uvWithoutDecimal.x < 2) {
+      return sample_char(uvWithoutDecimal - vec2f(1, 0), select(43u, 45u, parts.exponent < 0i));
+    } else {
+      return sample_i32(uvWithoutDecimal - vec2f(2, 0), abs(parts.exponent));
     }
-    return DBG_is_i32(uvWithoutDecimal - vec2f(1, 0), parts.exponent);
   }
 
   return 0f;
 }
 
-fn DBG_is_ascii5(uv: vec2<f32>, string: array<u32, 5>) -> f32 {
+fn sample_array5_char(uv: vec2<f32>, string: array<u32, 5>) -> f32 {
   if (uv.x >= 5) { return 0f; }
-  return DBG_is_ascii(uv - vec2(floor(uv.x), 0), string[u32(uv.x)]);
+  return sample_char(uv - vec2(floor(uv.x), 0), string[u32(uv.x)]);
 }
 
-fn DBG_is_ascii(uv: vec2<f32>, ascii: u32) -> f32 {
-  let uvScaled: vec2<f32> = uv * vec2<f32>(DBG_FONT_SIZE) * vec2f(1.2, 1.2);
+fn sample_char(uv: vec2<f32>, char: u32) -> f32 {
+  let uvScaled: vec2<f32> = uv * vec2<f32>(sample__FONT_SIZE) * vec2f(1.2, 1.2);
   if (uvScaled.x < 0 || uvScaled.y < 0 || uvScaled.x >= 5 || uvScaled.y >= 5) { return 0f; }
-  if (uvScaled.x > f32(DBG_FONT_SIZE.x)) { return 0; }
+  if (uvScaled.x > f32(sample__FONT_SIZE.x)) { return 0; }
   let fontPixel: vec2<u32> = vec2<u32>(uvScaled);
-  let fontBitIndex: u32 = ((DBG_FONT_SIZE.x - 1) - fontPixel.x) + fontPixel.y * DBG_FONT_SIZE.x;
-  return f32(extractBits(DBG_FONT[ascii], fontBitIndex, 1));
+  let fontBitIndex: u32 = ((sample__FONT_SIZE.x - 1) - fontPixel.x) + fontPixel.y * sample__FONT_SIZE.x;
+  return f32(extractBits(sample__FONT[char], fontBitIndex, 1));
 }
 
-fn DBG_is_vec4_bool(uv: vec2<f32>, value: vec4<bool>) -> f32 {
-  return DBG_is_vecN_bool(uv, array(value[0], value[1], value[2], value[3]), 4);
+fn sample_vec4_bool(uv: vec2<f32>, value: vec4<bool>) -> f32 {
+  return sample__vecN_bool(uv, array(value[0], value[1], value[2], value[3]), 4);
 }
 
-fn DBG_is_vec3_bool(uv: vec2<f32>, value: vec3<bool>) -> f32 {
-  return DBG_is_vecN_bool(uv, array(value[0], value[1], value[2], false), 3);
+fn sample_vec3_bool(uv: vec2<f32>, value: vec3<bool>) -> f32 {
+  return sample__vecN_bool(uv, array(value[0], value[1], value[2], false), 3);
 }
 
-fn DBG_is_vec2_bool(uv: vec2<f32>, value: vec2<bool>) -> f32 {
-  return DBG_is_vecN_bool(uv, array(value[0], value[1], false, false), 2);
+fn sample_vec2_bool(uv: vec2<f32>, value: vec2<bool>) -> f32 {
+  return sample__vecN_bool(uv, array(value[0], value[1], false, false), 2);
 }
 
-fn DBG_is_vec4_u32(uv: vec2<f32>, value: vec4<u32>) -> f32 {
-  return DBG_is_vecN_u32(uv, array(value[0], value[1], value[2], value[3]), 4);
+fn sample_vec4_u32(uv: vec2<f32>, value: vec4<u32>) -> f32 {
+  return sample__vecN_u32(uv, array(value[0], value[1], value[2], value[3]), 4);
 }
 
-fn DBG_is_vec3_u32(uv: vec2<f32>, value: vec3<u32>) -> f32 {
-  return DBG_is_vecN_u32(uv, array(value[0], value[1], value[2], 0), 3);
+fn sample_vec3_u32(uv: vec2<f32>, value: vec3<u32>) -> f32 {
+  return sample__vecN_u32(uv, array(value[0], value[1], value[2], 0), 3);
 }
 
-fn DBG_is_vec2_u32(uv: vec2<f32>, value: vec2<u32>) -> f32 {
-  return DBG_is_vecN_u32(uv, array(value[0], value[1], 0, 0), 2);
+fn sample_vec2_u32(uv: vec2<f32>, value: vec2<u32>) -> f32 {
+  return sample__vecN_u32(uv, array(value[0], value[1], 0, 0), 2);
 }
 
-fn DBG_is_vec4_i32(uv: vec2<f32>, value: vec4<i32>) -> f32 {
-  return DBG_is_vecN_i32(uv, array(value[0], value[1], value[2], value[3]), 4);
+fn sample_vec4_i32(uv: vec2<f32>, value: vec4<i32>) -> f32 {
+  return sample__vecN_i32(uv, array(value[0], value[1], value[2], value[3]), 4);
 }
 
-fn DBG_is_vec3_i32(uv: vec2<f32>, value: vec3<i32>) -> f32 {
-  return DBG_is_vecN_i32(uv, array(value[0], value[1], value[2], 0), 3);
+fn sample_vec3_i32(uv: vec2<f32>, value: vec3<i32>) -> f32 {
+  return sample__vecN_i32(uv, array(value[0], value[1], value[2], 0), 3);
 }
 
-fn DBG_is_vec2_i32(uv: vec2<f32>, value: vec2<i32>) -> f32 {
-  return DBG_is_vecN_i32(uv, array(value[0], value[1], 0, 0), 2);
+fn sample_vec2_i32(uv: vec2<f32>, value: vec2<i32>) -> f32 {
+  return sample__vecN_i32(uv, array(value[0], value[1], 0, 0), 2);
 }
 
-fn DBG_is_vec4_f32(uv: vec2<f32>, value: vec4<f32>) -> f32 {
-  return DBG_is_vecN_f32(uv, array(value[0], value[1], value[2], value[3]), 4);
+fn sample_vec4_f32(uv: vec2<f32>, value: vec4<f32>) -> f32 {
+  return sample__vecN_f32(uv, array(value[0], value[1], value[2], value[3]), 4);
 }
 
-fn DBG_is_vec3_f32(uv: vec2<f32>, value: vec3<f32>) -> f32 {
-  return DBG_is_vecN_f32(uv, array(value[0], value[1], value[2], 0), 3);
+fn sample_vec3_f32(uv: vec2<f32>, value: vec3<f32>) -> f32 {
+  return sample__vecN_f32(uv, array(value[0], value[1], value[2], 0), 3);
 }
 
-fn DBG_is_vec2_f32(uv: vec2<f32>, value: vec2<f32>) -> f32 {
-  return DBG_is_vecN_f32(uv, array(value[0], value[1], 0, 0), 2);
+fn sample_vec2_f32(uv: vec2<f32>, value: vec2<f32>) -> f32 {
+  return sample__vecN_f32(uv, array(value[0], value[1], 0, 0), 2);
 }
 
 // beginning of internals
 
-fn DBG_is_vecN_bool(uv: vec2<f32>, value: array<bool, 4>, n: u32) -> f32 {
+fn sample__vecN_bool(uv: vec2<f32>, value: array<bool, 4>, n: u32) -> f32 {
   if (uv.y >= f32(n)) { return 0f; }
   let index = u32(uv.y);
   if (uv.x < 2) {
-    return DBG_is_ascii(uv - vec2f(0, f32(index)), DBG_ASCII_NUMBER_START + ((n - 1) - index));
+    return sample_char(uv - vec2f(0, f32(index)), sample__ASCII_NUMBER_START + ((n - 1) - index));
   } else {
-    return DBG_is_bool(uv - vec2f(2, f32(index)), value[(n - 1) - index]);
+    return sample_bool(uv - vec2f(2, f32(index)), value[(n - 1) - index]);
   }
 }
 
-fn DBG_is_vecN_u32(uv: vec2<f32>, value: array<u32, 4>, n: u32) -> f32 {
+fn sample__vecN_u32(uv: vec2<f32>, value: array<u32, 4>, n: u32) -> f32 {
   if (uv.y >= f32(n)) { return 0f; }
   let index = u32(uv.y);
   if (uv.x < 2) {
-    return DBG_is_ascii(uv - vec2f(0, f32(index)), DBG_ASCII_NUMBER_START + ((n - 1) - index));
+    return sample_char(uv - vec2f(0, f32(index)), sample__ASCII_NUMBER_START + ((n - 1) - index));
   } else {
-    return DBG_is_u32(uv - vec2f(2, f32(index)), value[(n - 1) - index]);
+    return sample_u32(uv - vec2f(2, f32(index)), value[(n - 1) - index]);
   }
 }
 
-fn DBG_is_vecN_i32(uv: vec2<f32>, value: array<i32, 4>, n: u32) -> f32 {
+fn sample__vecN_i32(uv: vec2<f32>, value: array<i32, 4>, n: u32) -> f32 {
   if (uv.y >= f32(n)) { return 0f; }
   let index = u32(uv.y);
   if (uv.x < 2) {
-    return DBG_is_ascii(uv - vec2f(0, f32(index)), DBG_ASCII_NUMBER_START + ((n - 1) - index));
+    return sample_char(uv - vec2f(0, f32(index)), sample__ASCII_NUMBER_START + ((n - 1) - index));
   } else {
-    return DBG_is_i32(uv - vec2f(2, f32(index)), value[(n - 1) - index]);
+    return sample_i32(uv - vec2f(2, f32(index)), value[(n - 1) - index]);
   }
 }
 
-fn DBG_is_vecN_f32(uv: vec2<f32>, value: array<f32, 4>, n: u32) -> f32 {
+fn sample__vecN_f32(uv: vec2<f32>, value: array<f32, 4>, n: u32) -> f32 {
   if (uv.y >= f32(n)) { return 0f; }
   let index = u32(uv.y);
   if (uv.x < 2) {
-    return DBG_is_ascii(uv - vec2f(0, f32(index)), DBG_ASCII_NUMBER_START + ((n - 1) - index));
+    return sample_char(uv - vec2f(0, f32(index)), sample__ASCII_NUMBER_START + ((n - 1) - index));
   } else {
-    return DBG_is_f32(uv - vec2f(2, f32(index)), value[(n - 1) - index]);
+    return sample_f32(uv - vec2f(2, f32(index)), value[(n - 1) - index]);
   }
 }
 
-struct DBG_f32_splits {
+struct sample__f32_splits {
   integral: u32,
   decimal: u32,
   decimalPlace: u32,
   exponent: i32,
 };
-fn DBG_f32_split(inValue: f32) -> DBG_f32_splits {
-  var n = DBG_f32_normalize(inValue);
+fn sample__f32_split(inValue: f32) -> sample__f32_splits {
+  var n = sample__f32_normalize(inValue);
   var exponent = n.exponent;
   var value = n.value;
   var integral = u32(value);
@@ -225,14 +224,14 @@ fn DBG_f32_split(inValue: f32) -> DBG_f32_splits {
     decimal /= 10;
     decimalPlace -= 1;
   }
-  return DBG_f32_splits(integral, decimal, decimalPlace, exponent);
+  return sample__f32_splits(integral, decimal, decimalPlace, exponent);
 }
 
-struct DBG_f32_normalized {
+struct sample__f32_normalized {
   value: f32,
   exponent: i32,
 }
-fn DBG_f32_normalize(value: f32) -> DBG_f32_normalized {
+fn sample__f32_normalize(value: f32) -> sample__f32_normalized {
   let positiveExpThreshold: f32 = 1e7;
   let negativeExpThreshold: f32 = 1e-5;
   var exponent: i32 = 0;
@@ -253,14 +252,14 @@ fn DBG_f32_normalize(value: f32) -> DBG_f32_normalized {
     if (normalized < 1e-1) { normalized *= 1e2; exponent -= 2; }
     if (normalized < 1e0) { normalized *= 1e1; exponent -= 1; }
   }
-  return DBG_f32_normalized(normalized, exponent);
+  return sample__f32_normalized(normalized, exponent);
 }
 
-fn DBG_string_length(number: u32) -> u32 {
-  return DBG_log_u32(number, 10) + 1;
+fn sample__digit_count(number: u32) -> u32 {
+  return sample__log_u32(number, 10) + 1;
 }
 
-fn DBG_pow_u32(number: u32, power: u32) -> u32 {
+fn sample__pow_u32(number: u32, power: u32) -> u32 {
   if (power > 31) { return 0; }
   var result = number;
   for (var i: u32 = 0; i < power; i += 1) {
@@ -269,7 +268,7 @@ fn DBG_pow_u32(number: u32, power: u32) -> u32 {
   return result;
 }
 
-fn DBG_log_u32(number: u32, base: u32) -> u32 {
+fn sample__log_u32(number: u32, base: u32) -> u32 {
   var result: u32 = 0;
   for (var remaining: u32 = number; remaining > 9; remaining /= base) {
     result += 1;
@@ -278,12 +277,12 @@ fn DBG_log_u32(number: u32, base: u32) -> u32 {
   return result;
 }
 
-const DBG_ASCII_LETTER_START = 65;
-const DBG_ASCII_NUMBER_START = 48;
+const sample__ASCII_LETTER_START = 65;
+const sample__ASCII_NUMBER_START = 48;
 
 // ASCII (Code page 437)
-const DBG_FONT_SIZE: vec2<u32> = vec2(5, 5);
-const DBG_FONT: array<u32, 256> = array(
+const sample__FONT_SIZE: vec2<u32> = vec2(5, 5);
+const sample__FONT: array<u32, 256> = array(
   /* ████ */ 0x15f8000 + 0, 0x15f8000 + 1, 0x15f8000 + 2, 0x15f8000 + 3, 0x15f8000 + 4,
   /* ████ */ 0x15f8000 + 5, 0x15f8000 + 6, 0x15f8000 + 7, 0x15f8000 + 8, 0x15f8000 + 9,
   /* ████ */ 0x15f8000 + 10, 0x15f8000 + 11, 0x15f8000 + 12, 0x15f8000 + 13, 0x15f8000 + 14,
@@ -292,7 +291,7 @@ const DBG_FONT: array<u32, 256> = array(
   /* ████ */ 0x15f8000 + 25, 0x15f8000 + 26, 0x15f8000 + 27, 0x15f8000 + 28, 0x15f8000 + 29,
   /* ██ █ */ 0x15f8000 + 30, 0x15f8000 + 31, 0x0, 0x15f8000 + 33, 0x15f8000 + 34,
   /* ████ */ 0x15f8000 + 35, 0x15f8000 + 36, 0x15f8000 + 37, 0x15f8000 + 38, 0x15f8000 + 39,
-  /* ████ */ 0x15f8000 + 40, 0x15f8000 + 41, 0x15f8000 + 42, 0x15f8000 + 43, 0x15f8000 + 44,
+  /* ██+█ */ 0x15f8000 + 40, 0x15f8000 + 41, 0x15f8000 + 42, 0x427c84 , 0x15f8000 + 44,
   /* -.█0 */ 0x7c00, 0x4, 0x15f8000 + 47, 0xecd66e,
   /* 1234 */ 0x46108e, 0xe8899f, 0xe88a2e, 0x4653e4,
   /* 5678 */ 0x1f8783e, 0xe87a2e, 0x1f08888, 0xe8ba2e,
