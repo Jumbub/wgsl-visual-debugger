@@ -8,9 +8,9 @@ let pixel = sample_f32(uv, 1.0f);
 
 ## Usage
 
-1) Make the contents of `source.wgsl` available to your shader (e.g. by copy pasta)
+1) Make the contents of `source.wgsl` available to your shader
 
-2) Use one of the available samplers to set the fragment shader output (e.g. `sample_f32`)
+2) Use one of the available samplers to set the fragment shader output
 
 ### Examples
 
@@ -23,6 +23,31 @@ fn main(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32> {
   return vec4<f32>(sample_f32(uv * 15, unknownGpuValue));
 }
 ```
+
+### API
+
+```wgsl
+fn sample_bool(uv: vec2<f32>, value: bool) -> f32;
+fn sample_u32(uv: vec2<f32>, number: u32) -> f32;
+fn sample_i32(uv: vec2<f32>, number: i32) -> f32;
+fn sample_f32(uv: vec2<f32>, number: f32) -> f32;
+fn sample_vec4_bool(uv: vec2<f32>, value: vec4<bool>) -> f32;
+fn sample_vec3_bool(uv: vec2<f32>, value: vec3<bool>) -> f32;
+fn sample_vec2_bool(uv: vec2<f32>, value: vec2<bool>) -> f32;
+fn sample_vec4_u32(uv: vec2<f32>, value: vec4<u32>) -> f32;
+fn sample_vec3_u32(uv: vec2<f32>, value: vec3<u32>) -> f32;
+fn sample_vec2_u32(uv: vec2<f32>, value: vec2<u32>) -> f32;
+fn sample_vec4_i32(uv: vec2<f32>, value: vec4<i32>) -> f32;
+fn sample_vec3_i32(uv: vec2<f32>, value: vec3<i32>) -> f32;
+fn sample_vec2_i32(uv: vec2<f32>, value: vec2<i32>) -> f32;
+fn sample_vec4_f32(uv: vec2<f32>, value: vec4<f32>) -> f32;
+fn sample_vec3_f32(uv: vec2<f32>, value: vec3<f32>) -> f32;
+fn sample_vec2_f32(uv: vec2<f32>, value: vec2<f32>) -> f32;
+fn sample_ascii_u32(uv: vec2<f32>, char: u32) -> f32;
+fn sample_ascii5_u32(uv: vec2<f32>, string: array<u32, 5>) -> f32;
+```
+
+> The ASCII characters use "Code page 437" character encoding
 
 ## Use Cases
 

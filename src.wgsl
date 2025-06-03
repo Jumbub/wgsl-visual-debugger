@@ -1,8 +1,8 @@
 fn sample_bool(uv: vec2<f32>, value: bool) -> f32 {
   if (value) {
-    return sample_array5_char(uv, array<u32, 5>(84, 82, 85, 69, 32));
+    return sample_ascii5_u32(uv, array<u32, 5>(84, 82, 85, 69, 32));
   } else {
-    return sample_array5_char(uv, array<u32, 5>(70, 65, 76, 83, 69));
+    return sample_ascii5_u32(uv, array<u32, 5>(70, 65, 76, 83, 69));
   }
 }
 
@@ -15,12 +15,12 @@ fn sample_u32(uv: vec2<f32>, number: u32) -> f32 {
   if (charUv.x > charRange.x) { return 0; }
 
   let digit = (number / sample__pow_u32(10, (charRange.x - charUv.x) - 1)) % 10;
-  return sample_char(uv - vec2f(f32(charUv.x), 0), sample__ASCII_NUMBER_START + digit);
+  return sample_ascii_u32(uv - vec2f(f32(charUv.x), 0), sample__ASCII_NUMBER_START + digit);
 }
 
 fn sample_i32(uv: vec2<f32>, number: i32) -> f32 {
   if (number < 0 && u32(uv.x) == 0) {
-    return sample_char(uv, 45);
+    return sample_ascii_u32(uv, 45);
   } else {
     return sample_u32(uv - vec2f(f32(number < 0), 0), u32(abs(number)));
   }
@@ -31,20 +31,20 @@ fn sample_f32(uv: vec2<f32>, number: f32) -> f32 {
 
   let negative = extractBits(bitcast<i32>(number), 31u, 1u) != 0;
   if (negative && u32(uv.x) == 0) {
-    return sample_char(uv, 45);
+    return sample_ascii_u32(uv, 45);
   }
 
   let uvWithoutSign = uv - vec2<f32>(select(0f, 1f, negative), 0);
   if (extractBits(bitcast<u32>(number), 23u, 8u) == 255) {
     if (extractBits(bitcast<u32>(number), 0u, 23u) == 0) {
-      return sample_array5_char(uvWithoutSign, array<u32, 5>(73, 78, 70, 32, 32));
+      return sample_ascii5_u32(uvWithoutSign, array<u32, 5>(73, 78, 70, 32, 32));
     } else {
       if (uvWithoutSign.x < 1) {
-        return sample_char(uvWithoutSign, 78);
+        return sample_ascii_u32(uvWithoutSign, 78);
       } else if (uvWithoutSign.x < 2) {
-        return sample_char(uvWithoutSign - vec2f(1, 0), 65);
+        return sample_ascii_u32(uvWithoutSign - vec2f(1, 0), 65);
       } else {
-        return sample_char(uvWithoutSign - vec2f(2, 0), 78);
+        return sample_ascii_u32(uvWithoutSign - vec2f(2, 0), 78);
       }
     }
   }
@@ -66,11 +66,11 @@ fn sample_f32(uv: vec2<f32>, number: f32) -> f32 {
   );
   if (uvWithoutIntegral.x < decimalLength) {
     if (uvWithoutIntegral.x < 1) {
-      return sample_char(uvWithoutIntegral, 46);
+      return sample_ascii_u32(uvWithoutIntegral, 46);
     }
     let zeros = parts.decimalPlace - sample__digit_count(parts.decimal);
     if (uvWithoutIntegral.x < f32(zeros)) {
-      return sample_char(vec2f(uvWithoutIntegral.x % 1, uvWithoutIntegral.y), sample__ASCII_NUMBER_START);
+      return sample_ascii_u32(vec2f(uvWithoutIntegral.x % 1, uvWithoutIntegral.y), sample__ASCII_NUMBER_START);
     }
     return sample_u32(uvWithoutIntegral - vec2f(f32(zeros), 0), parts.decimal);
   }
@@ -78,9 +78,9 @@ fn sample_f32(uv: vec2<f32>, number: f32) -> f32 {
 
   if (parts.exponent != 0) {
     if (uvWithoutDecimal.x < 1) {
-      return sample_char(uvWithoutDecimal, 69);
+      return sample_ascii_u32(uvWithoutDecimal, 69);
     } else if (uvWithoutDecimal.x < 2) {
-      return sample_char(uvWithoutDecimal - vec2f(1, 0), select(43u, 45u, parts.exponent < 0i));
+      return sample_ascii_u32(uvWithoutDecimal - vec2f(1, 0), select(43u, 45u, parts.exponent < 0i));
     } else {
       return sample_i32(uvWithoutDecimal - vec2f(2, 0), abs(parts.exponent));
     }
@@ -89,12 +89,12 @@ fn sample_f32(uv: vec2<f32>, number: f32) -> f32 {
   return 0f;
 }
 
-fn sample_array5_char(uv: vec2<f32>, string: array<u32, 5>) -> f32 {
+fn sample_ascii5_u32(uv: vec2<f32>, string: array<u32, 5>) -> f32 {
   if (uv.x >= 5) { return 0f; }
-  return sample_char(uv - vec2(floor(uv.x), 0), string[u32(uv.x)]);
+  return sample_ascii_u32(uv - vec2(floor(uv.x), 0), string[u32(uv.x)]);
 }
 
-fn sample_char(uv: vec2<f32>, char: u32) -> f32 {
+fn sample_ascii_u32(uv: vec2<f32>, char: u32) -> f32 {
   let uvScaled: vec2<f32> = uv * vec2<f32>(sample__FONT_SIZE) * vec2f(1.2, 1.2);
   if (uvScaled.x < 0 || uvScaled.y < 0 || uvScaled.x >= 5 || uvScaled.y >= 5) { return 0f; }
   if (uvScaled.x > f32(sample__FONT_SIZE.x)) { return 0; }
@@ -157,7 +157,7 @@ fn sample__vecN_bool(uv: vec2<f32>, value: array<bool, 4>, n: u32) -> f32 {
   if (uv.y >= f32(n)) { return 0f; }
   let index = u32(uv.y);
   if (uv.x < 2) {
-    return sample_char(uv - vec2f(0, f32(index)), sample__ASCII_NUMBER_START + ((n - 1) - index));
+    return sample_ascii_u32(uv - vec2f(0, f32(index)), sample__ASCII_NUMBER_START + ((n - 1) - index));
   } else {
     return sample_bool(uv - vec2f(2, f32(index)), value[(n - 1) - index]);
   }
@@ -167,7 +167,7 @@ fn sample__vecN_u32(uv: vec2<f32>, value: array<u32, 4>, n: u32) -> f32 {
   if (uv.y >= f32(n)) { return 0f; }
   let index = u32(uv.y);
   if (uv.x < 2) {
-    return sample_char(uv - vec2f(0, f32(index)), sample__ASCII_NUMBER_START + ((n - 1) - index));
+    return sample_ascii_u32(uv - vec2f(0, f32(index)), sample__ASCII_NUMBER_START + ((n - 1) - index));
   } else {
     return sample_u32(uv - vec2f(2, f32(index)), value[(n - 1) - index]);
   }
@@ -177,7 +177,7 @@ fn sample__vecN_i32(uv: vec2<f32>, value: array<i32, 4>, n: u32) -> f32 {
   if (uv.y >= f32(n)) { return 0f; }
   let index = u32(uv.y);
   if (uv.x < 2) {
-    return sample_char(uv - vec2f(0, f32(index)), sample__ASCII_NUMBER_START + ((n - 1) - index));
+    return sample_ascii_u32(uv - vec2f(0, f32(index)), sample__ASCII_NUMBER_START + ((n - 1) - index));
   } else {
     return sample_i32(uv - vec2f(2, f32(index)), value[(n - 1) - index]);
   }
@@ -187,7 +187,7 @@ fn sample__vecN_f32(uv: vec2<f32>, value: array<f32, 4>, n: u32) -> f32 {
   if (uv.y >= f32(n)) { return 0f; }
   let index = u32(uv.y);
   if (uv.x < 2) {
-    return sample_char(uv - vec2f(0, f32(index)), sample__ASCII_NUMBER_START + ((n - 1) - index));
+    return sample_ascii_u32(uv - vec2f(0, f32(index)), sample__ASCII_NUMBER_START + ((n - 1) - index));
   } else {
     return sample_f32(uv - vec2f(2, f32(index)), value[(n - 1) - index]);
   }
