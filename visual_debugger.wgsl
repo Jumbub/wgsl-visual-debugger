@@ -151,6 +151,77 @@ fn sample_vec2_f32(uv: vec2<f32>, value: vec2<f32>) -> f32 {
   return sample__vecN_f32(uv, array(value[0], value[1], 0, 0), 2);
 }
 
+fn sample_mat2x4_f32(uv: vec2<f32>, value: mat2x4<f32>) -> f32 {
+  return sample__matCxR_f32(uv, 2, 4, array<f32, 16>(
+    value[0][0], value[0][1], value[0][2], value[0][3],
+    value[1][0], value[1][1], value[1][2], value[1][3],
+    0, 0, 0, 0, 0, 0, 0, 0));
+}
+
+fn sample_mat4x2_f32(uv: vec2<f32>, value: mat4x2<f32>) -> f32 {
+  return sample__matCxR_f32(uv, 4, 2, array<f32, 16>(
+    value[0][0], value[0][1],
+    value[1][0], value[1][1],
+    value[2][0], value[2][1],
+    value[3][0], value[3][1],
+    0, 0, 0, 0, 0, 0, 0, 0));
+}
+
+fn sample_mat4x4_f32(uv: vec2<f32>, value: mat4x4<f32>) -> f32 {
+  return sample__matCxR_f32(uv, 4, 4, array<f32, 16>(
+    value[0][0], value[0][1], value[0][2], value[0][3],
+    value[1][0], value[1][1], value[1][2], value[1][3],
+    value[2][0], value[2][1], value[2][2], value[2][3],
+    value[3][0], value[3][1], value[3][2], value[3][3]));
+}
+
+fn sample_mat3x4_f32(uv: vec2<f32>, value: mat3x4<f32>) -> f32 {
+  return sample__matCxR_f32(uv, 3, 4, array<f32, 16>(
+    value[0][0], value[0][1], value[0][2], value[0][3],
+    value[1][0], value[1][1], value[1][2], value[1][3],
+    value[2][0], value[2][1], value[2][2], value[2][3],
+    0, 0, 0, 0));
+}
+
+fn sample_mat4x3_f32(uv: vec2<f32>, value: mat4x3<f32>) -> f32 {
+  return sample__matCxR_f32(uv, 4, 3, array<f32, 16>(
+    value[0][0], value[0][1], value[0][2],
+    value[1][0], value[1][1], value[1][2],
+    value[2][0], value[2][1], value[2][2],
+    value[3][0], value[3][1], value[3][2],
+    0, 0, 0, 0));
+}
+
+fn sample_mat3x3_f32(uv: vec2<f32>, value: mat3x3<f32>) -> f32 {
+  return sample__matCxR_f32(uv, 3, 3, array<f32, 16>(
+    value[0][0], value[0][1], value[0][2],
+    value[1][0], value[1][1], value[1][2],
+    value[2][0], value[2][1], value[2][2],
+    0, 0, 0, 0, 0, 0, 0));
+}
+
+fn sample_mat2x3_f32(uv: vec2<f32>, value: mat2x3<f32>) -> f32 {
+  return sample__matCxR_f32(uv, 2, 3, array<f32, 16>(
+    value[0][0], value[0][1], value[0][2],
+    value[1][0], value[1][1], value[1][2],
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+}
+
+fn sample_mat3x2_f32(uv: vec2<f32>, value: mat3x2<f32>) -> f32 {
+  return sample__matCxR_f32(uv, 3, 2, array<f32, 16>(
+    value[0][0], value[0][1],
+    value[1][0], value[1][1],
+    value[2][0], value[2][1],
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+}
+
+fn sample_mat2x2_f32(uv: vec2<f32>, value: mat2x2<f32>) -> f32 {
+  return sample__matCxR_f32(uv, 2, 2, array<f32, 16>(
+    value[0][0], value[0][1],
+    value[1][0], value[1][1],
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+}
+
 // beginning of internals
 
 fn sample__vecN_bool(uv: vec2<f32>, value: array<bool, 4>, n: u32) -> f32 {
@@ -190,6 +261,24 @@ fn sample__vecN_f32(uv: vec2<f32>, value: array<f32, 4>, n: u32) -> f32 {
     return sample_ascii_u32(uv - vec2f(0, f32(index)), sample__ASCII_NUMBER_START + ((n - 1) - index));
   } else {
     return sample_f32(uv - vec2f(2, f32(index)), value[(n - 1) - index]);
+  }
+}
+
+fn sample__matCxR_f32(uv: vec2<f32>, c: u32, r: u32, value: array<f32, 16>) -> f32 {
+  if (uv.y >= f32(c * r)) { return 0f; }
+  let index = u32(uv.y);
+  let inverseIndex = (c * r) - 1 - index;
+  if (uv.x < 4) {
+    let ascii = array<u32, 5>(
+      sample__ASCII_NUMBER_START + inverseIndex / r,
+      sample__ASCII_LETTER_START + 23,
+      sample__ASCII_NUMBER_START + inverseIndex % c,
+      32,
+      32,
+    );
+    return sample_ascii5_u32(uv - vec2f(0, f32(index)), ascii);
+  } else {
+    return sample_f32(uv - vec2f(4, f32(index)), value[inverseIndex]);
   }
 }
 

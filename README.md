@@ -69,6 +69,15 @@ fn sample_vec2_i32(uv: vec2<f32>, value: vec2<i32>) -> f32;
 fn sample_vec4_f32(uv: vec2<f32>, value: vec4<f32>) -> f32;
 fn sample_vec3_f32(uv: vec2<f32>, value: vec3<f32>) -> f32;
 fn sample_vec2_f32(uv: vec2<f32>, value: vec2<f32>) -> f32;
+fn sample_mat2x4_f32(uv: vec2<f32>, value: mat2x4<f32>) -> f32;
+fn sample_mat4x2_f32(uv: vec2<f32>, value: mat4x2<f32>) -> f32;
+fn sample_mat4x4_f32(uv: vec2<f32>, value: mat4x4<f32>) -> f32;
+fn sample_mat3x4_f32(uv: vec2<f32>, value: mat3x4<f32>) -> f32;
+fn sample_mat4x3_f32(uv: vec2<f32>, value: mat4x3<f32>) -> f32;
+fn sample_mat3x3_f32(uv: vec2<f32>, value: mat3x3<f32>) -> f32;
+fn sample_mat2x3_f32(uv: vec2<f32>, value: mat2x3<f32>) -> f32;
+fn sample_mat3x2_f32(uv: vec2<f32>, value: mat3x2<f32>) -> f32;
+fn sample_mat2x2_f32(uv: vec2<f32>, value: mat2x2<f32>) -> f32;
 fn sample_ascii_u32(uv: vec2<f32>, char: u32) -> f32;
 fn sample_ascii5_u32(uv: vec2<f32>, string: array<u32, 5>) -> f32;
 ```
