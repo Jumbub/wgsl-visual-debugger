@@ -14,7 +14,7 @@ let pixel = sample_f32(uv, 1f);
 
 ### Examples
 
-A full example exists in [demo.wgsl].
+A full example exists in (demo.wgsl)[demo.wgsl].
 
 ```wgsl
 @fragment
@@ -48,6 +48,8 @@ fn sample_ascii5_u32(uv: vec2<f32>, string: array<u32, 5>) -> f32;
 
 > The ASCII characters use "Code page 437" character encoding
 
+<br/>
+
 ## Why?
 
 - Quicker prototyping in WebGPU.
@@ -62,6 +64,8 @@ fn sample_ascii5_u32(uv: vec2<f32>, string: array<u32, 5>) -> f32;
 > How do I see the values of my storage buffer while the buffer is not CPU mappable?
 
 > How do I see the values of my storage buffer without using staging buffers?
+
+<br/>
 
 ## It's not working?
 
