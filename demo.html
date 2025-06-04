@@ -19,13 +19,12 @@
 
       context.configure({ device, format });
 
-      const wgsl = String.raw;
       const pipeline = await device.createRenderPipelineAsync({
         primitive: { topology: 'triangle-strip' },
         layout: 'auto',
         vertex: {
           module: device.createShaderModule({
-            code: wgsl`
+            code: `
               struct Output {
                 @builtin(position) position: vec4<f32>,
                 @location(0) uv: vec2<f32>,
@@ -34,17 +33,14 @@
               @vertex
               fn main(@builtin(vertex_index) i: u32) -> Output {
                 let uv = array(vec2f(0,  1), vec2f(1, 1), vec2f(0, 0), vec2f(1, 0));
-                return Output(
-                  vec4f(uv[i] * 2 - 1, 0, 1),
-                  uv[i]
-                );
+                return Output(vec4f(uv[i] * 2 - 1, 0, 1), uv[i]);
               }`,
           }),
         },
         fragment: {
           targets: [{ format }],
           module: device.createShaderModule({
-            code: wgsl`
+            code: `
               ${await (await fetch('visual_debugger.wgsl')).text()}
 
               @fragment
