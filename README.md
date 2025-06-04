@@ -1,8 +1,6 @@
-# WGSL Visual Debugger
+# WGSL Visual Debugging Functions
 
-Drop-in WGSL functions, rasterizing numerical values into ASCII, for WebGPU fragment shaders.
-
-</br>
+<br/>
 
 Visually debug scalar, vector or matrice values with pixel samplers.
 
@@ -25,17 +23,19 @@ Bringing "printf" debugging to a WebGPU near you.
 
 <br/>
 
-## How?
+## Usage
 
-1) Make the contents of `source.wgsl` available to your shader.
+1) Make the functions in `visual_debugging_functions.wgsl` available to your shader.
 
-2) Use the required sampler (e.g. `sample_f32`) in your fragment color output.
+2) Use the sampler (e.g. `sample_f32`) in your shader output.
 
-### Full Example
+3) See visual debug information.
+
+<br/>
+
+## Example
 
 A full example exists in [demo.html](demo.html).
-
-### Partial Example
 
 ```wgsl
 ${visual_debugger_src}
@@ -84,7 +84,7 @@ fn sample_ascii5_u32(uv: vec2<f32>, string: array<u32, 5>) -> f32;
 
 <br/>
 
-## Why?
+## Motivation
 
 > Is there a way to render text in WebGPU without using textures?
 
@@ -100,7 +100,7 @@ fn sample_ascii5_u32(uv: vec2<f32>, string: array<u32, 5>) -> f32;
 
 <br/>
 
-## It's not working?
+## Issues
 
 > I don't see anything
 
@@ -119,16 +119,20 @@ fn sample_ascii5_u32(uv: vec2<f32>, string: array<u32, 5>) -> f32;
 - Subtract from the UV _before_ applying a scaling factor.
 - A UV range of `<-3.0, -3.0>` to `<3.0, 3.0>` will render the first three characters offset from the UV by three characters.
 
-> I am seeing characters that look like this
+> I am seeing characters that look like this <img src="https://github.com/user-attachments/assets/4bcbc8d5-2511-46b9-8254-258cab0314b3"/>, <img src="https://github.com/user-attachments/assets/cfa3b24a-168c-4d08-9a27-1d043b8d6adf"/>, <img src="https://github.com/user-attachments/assets/f9fcdfc0-bf54-45ba-9901-ceec55846c2e"/>
 
 - The default font does not support this character.
-- The 2 bottom rows of the character contain the bit representation of the character).
+- The bottom two rows contain the bit representation of the character. (the examples are 0, 3, 240 respectively.)
 
-> The text is stretched
+> The text is stretched <img src="https://github.com/user-attachments/assets/804a55d2-98b6-431d-944d-34f73285bf84"/>
 
 - The aspect ratio of the target texture must match the UV range.
-- For a `720x480` texture size you could have a UV range `0x0` to `36x24`).
+- For a `720x480` texture size you could have a UV range `0x0` to `36x24`.
 
-> The text looks weird when rendered small
+> The text has weird artefacts <img src="https://github.com/user-attachments/assets/83dc5e2b-5a5c-4c07-bc95-330865f67db8" />
 
 - The texture must be a multiple of 6 for pixel perfect sampling.
+
+<br/>
+
+The project has a full test suit, runnable here: [jumbub.github.io/wgsl-visual-debugger/test](https://jumbub.github.io/wgsl-visual-debugger/test.html).
